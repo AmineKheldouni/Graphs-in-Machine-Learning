@@ -21,7 +21,7 @@ tf.set_random_seed(SEED)
 
 print("Creating environment ...")
 # Load one task:
-env = suite.load(domain_name="cartpole", task_name="swingup")
+env = suite.load(domain_name="acrobot", task_name="swingup")
 
 print("Environment created !")
 
