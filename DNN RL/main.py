@@ -12,9 +12,11 @@ from keras import backend as K
 K.tensorflow_backend._get_available_gpus()
 
 
+# env = gym.make('CartPole-v0')
 env = gym.make('Pendulum-v0')
 # env = gym.make('Acrobot-v1')
-# env = gym.make('HalfCheetah-v2')
+# env = gym.make('Hopper-v2')
+# env = gym.make(′FetchReach-v0′)
 env.reset()
 # print("Bounds for observation space:")
 # print(env.observation_space.low, env.observation_space.high)
@@ -29,8 +31,15 @@ def sample_trajectories(env, N):
       for i in range(N):
           action = env.action_space.sample()
           next_state, reward, done, info = env.step(action)
-          example = [obs for obs in state]
-          example.append(action)
+          if isinstance(state, np.ndarray):
+              example = [s for s in state]
+          else:
+              example = [state]
+          if isinstance(action, np.ndarray):
+              example += [a for a in action]
+          else:
+              example += [action]
+
           X.append(np.array(example))
           Y.append(next_state)
           state = next_state
@@ -101,60 +110,13 @@ for step_index in range(1000):
 
 gt_path = np.array(gt_path)
 predicted_path = np.array(predicted_path).reshape(gt_path.shape)
-fig, ax = plt.subplots(len(current_state),1)
 print("predicted_path: ", predicted_path.shape)
 print("gt_path: ", gt_path.shape)
 for i in range(len(current_state)):
     color = np.random.uniform(0, 1, 3)
-    ax[i].plot(range(gt_path.shape[0]), gt_path.T[i], color=tuple(color), label='Ground Truth Trajectory')
-    ax[i].plot(range(predicted_path.shape[0]), predicted_path.T[i], color=tuple(color), label='Predicted with Linear NN', linestyle='dashed')
-plt.legend()
-plt.draw()
-plt.show()
-# scores = []
-# choices = []
-# for each_game in range(100):
-#     score = 0
-#     prev_obs = []
-#     for step_index in range(goal_steps):
-#
-#         # time.sleep(0.05)
-#         # env.render()
-#         if len(prev_obs)==0:
-#             action = env.action_space.sample()
-#         else:
-#             action = np.argmax(trained_model.predict(prev_obs.reshape(-1, len(prev_obs)))[0])
-#
-#         choices.append(action)
-#         new_observation, reward, done, info = env.step(action)
-#         prev_obs = new_observation
-#         score+=reward
-#         if done:
-#             print("Finished after iteration: ", step_index)
-#             break
-#
-#     env.reset()
-#     scores.append(score)
-# env.close()
-# print(scores)
-# print('Average Score:', sum(scores)/len(scores))
-# print('choice 1:{}  choice 0:{}'.format(choices.count(1)/len(choices),choices.count(0)/len(choices)))
-#
-# score = 0
-# prev_obs = []
-# for step_index in range(goal_steps):
-#     time.sleep(0.05)
-#     env.render()
-#     if len(prev_obs)==0:
-#         action = env.action_space.sample()
-#     else:
-#         action = np.argmax(trained_model.predict(prev_obs.reshape(-1, len(prev_obs)))[0])
-#
-#     new_observation, reward, done, info = env.step(action)
-#     prev_obs = new_observation
-#     score+=reward
-#     if done:
-#         print("Finished after iteration: ", step_index)
-#         break
-# print("Score: ", score)
-# env.reset()
+    plt.plot(range(gt_path.shape[0]), gt_path.T[i], color=tuple(color), label='Ground Truth Trajectory')
+    plt.plot(range(predicted_path.shape[0]), predicted_path.T[i], color=tuple(color), label='Predicted with Linear NN', linestyle='dashed')
+    plt.title('Ground Truth trajectory vs Prediction '+ str(i)+'-th component of state vector')
+    plt.legend()
+    plt.draw()
+    plt.show()
