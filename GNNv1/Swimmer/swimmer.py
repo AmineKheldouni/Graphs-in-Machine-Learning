@@ -39,8 +39,7 @@ tf.set_random_seed(SEED)
 
 if False:
 
-    def build_dics_pendulum(m, l, g, theta_0, theta_dot_0, torque_0):
-
+    def build_dics_swimmer(m, l, g, theta_0, theta_dot_0, torque_0):
 
         static_dict = {"globals": np.array([g], dtype=np.float32),
                       "nodes": np.array([[0.], [m]], dtype=np.float32),

@@ -37,24 +37,24 @@ tf.set_random_seed(SEED)
 
 ### BUILD GRAPH
 
-if False:
+if True:
 
-    def build_dics_pendulum(m, l, g, theta_0, theta_dot_0, torque_0):
+    def build_dics_cartpole(m, l, g, cart_pos, cart_speed, pole_angle, pole_speed, action):
 
 
         static_dict = {"globals": np.array([g], dtype=np.float32),
-                      "nodes": np.array([[0.], [m]], dtype=np.float32),
+                      "nodes": np.array([[m], [0]], dtype=np.float32),
                       "edges": np.array([[l]], dtype=np.float32),
-                      "receivers": np.array([1]),
-                      "senders": np.array([0])
+                      "receivers": np.array([0]),
+                      "senders": np.array([1])
                 }
 
 
         dynamic_dict = {"globals": np.array([0.], dtype=np.float32),
-                      "nodes": np.array([[0., 0.], [theta_0, theta_dot_0]], dtype=np.float32),
-                      "edges": np.array([[torque_0]], dtype=np.float32),
-                      "receivers": np.array([1]),
-                      "senders": np.array([0])
+                      "nodes": np.array([[pole_angle, pole_speed], [cart_pos, cart_speed]], dtype=np.float32),
+                      "edges": np.array([[action]], dtype=np.float32),
+                      "receivers": np.array([0]),
+                      "senders": np.array([1])
                 }
 
         return static_dict, dynamic_dict
@@ -65,8 +65,6 @@ if False:
     l = 1.
     g = -10.
 
-
-    #static_dict, dynamic_dict = build_dics_pendulum(m, l, g, theta_0, theta_dot_0, torque_0)
 
 
     ### CREATE MODEL CLASS
@@ -92,7 +90,7 @@ if False:
 
     class ForwardModel(snt.AbstractModule):
 
-        def __init__(self, n_latent = 2, name = "Pendulum"):
+        def __init__(self, n_latent = 2, name = "CartPole"):
             super(ForwardModel, self).__init__(name=name)
             self.n_latent = n_latent
             self.n_output = 2
@@ -109,7 +107,7 @@ if False:
 
     ### BUILD TRAINING AND TEST DATA, TRAIN MODEL
 
-    env = gym.make('Pendulum-v0')
+    env = gym.make('CartPole-v0')
     env.reset()
 
     def sample_trajectories(env, N, m, l, g):
@@ -117,24 +115,22 @@ if False:
         dicts_in_dynamic = []
         dicts_out_static = []
         dicts_out_dynamic = []
-        x_prev, y_prev, thetadot_prev = env.reset()
-        theta_prev = np.arctan2(y_prev, x_prev)
+        cart_pos, cart_speed, pole_angle, pole_speed = env.reset()
         while (len(dicts_in_static) < N):
           for i in range(N):
 
               action = env.action_space.sample()
-              [x_next, y_next, thetadot_next], _, done, _ = env.step(action)
-              theta_next = np.arctan2(y_next, x_next)
+              [cart_pos_next, cart_speed_next, pole_angle_next, pole_speed_next], _, done, _ = env.step(action)
 
-              dict_in_static, dict_in_dynamic = build_dics_pendulum(m, l, g, theta_prev, thetadot_prev, action.sum())
-              dict_out_static, dict_out_dynamic = build_dics_pendulum(m, l, g, theta_next, thetadot_next, action.sum())
+              dict_in_static, dict_in_dynamic = build_dics_cartpole(m, l, g, cart_pos, cart_speed, pole_angle, pole_speed, action)
+              dict_out_static, dict_out_dynamic = build_dics_cartpole(m, l, g, cart_pos_next, cart_speed_next, pole_angle_next, pole_speed_next, action)
 
               dicts_in_static.append( dict_in_static )
               dicts_in_dynamic.append( dict_in_dynamic )
               dicts_out_static.append( dict_out_static )
               dicts_out_dynamic.append( dict_out_dynamic )
 
-              theta_prev, thetadot_prev = theta_next, thetadot_next
+              cart_pos, cart_speed, pole_angle, pole_speed = cart_pos_next, cart_speed_next, pole_angle_next, pole_speed_next
 
               if done or len(dicts_in_static) == N:
                   break
