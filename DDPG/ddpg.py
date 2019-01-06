@@ -20,7 +20,7 @@ from noise import Noise
 from reward import Reward
 from actor import ActorNetwork
 from critic import CriticNetwork
-
+# Credit: https://github.com/liampetti/DDPG
 
 # ==========================
 #   Training Parameters

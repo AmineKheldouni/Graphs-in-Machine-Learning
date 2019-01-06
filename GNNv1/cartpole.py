@@ -164,8 +164,8 @@ for node in range(n_nodes):
 
 if not os.path.exists('./results/'+NAME+'/train'):
   os.mkdir('./results/'+NAME+'/train')
-csv_train_gt.to_csv('./results/'+NAME+'/train/GroundTruth_'+ str(datetime.datetime.now()) + '.csv', sep=',', index=False)
-csv_train_pred.to_csv('./results/'+NAME+'/train/Prediction_'+ str(datetime.datetime.now()) + '.csv', sep=',', index=False)
+csv_train_gt.to_csv('./results/'+NAME+'/train/GroundTruth_'+ str(datetime.datetime.now().strftime("%Y%m%d%H%M%S")) + '.csv', sep=',', index=False)
+csv_train_pred.to_csv('./results/'+NAME+'/train/Prediction_'+ str(datetime.datetime.now().strftime("%Y%m%d%H%M%S")) + '.csv', sep=',', index=False)
 
 
 
@@ -214,8 +214,8 @@ for node in range(n_nodes):
 
 if not os.path.exists('./results/'+NAME+'/test'):
   os.mkdir('./results/'+NAME+'/test')
-csv_test_gt.to_csv('./results/'+NAME+'/test/GroundTruth_'+ str(datetime.datetime.now()) + '.csv', sep=',', index=False)
-csv_test_pred.to_csv('./results/'+NAME+'/test/Prediction_'+ str(datetime.datetime.now()) + '.csv', sep=',', index=False)
+csv_test_gt.to_csv('./results/'+NAME+'/test/GroundTruth_'+ str(datetime.datetime.now().strftime("%Y%m%d%H%M%S")) + '.csv', sep=',', index=False)
+csv_test_pred.to_csv('./results/'+NAME+'/test/Prediction_'+ str(datetime.datetime.now().strftime("%Y%m%d%H%M%S")) + '.csv', sep=',', index=False)
 
 env.close()
 sess.close()
