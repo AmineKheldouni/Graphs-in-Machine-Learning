@@ -5,7 +5,7 @@ def sample_trajectories(env, N, m, l, g, build_dics_func):
     dicts_out_dynamic = []
     state = env.reset()
     while (len(dicts_in_static) < N):
-      for i in range(N):
+      for i in range(100):
 
           action = env.action_space.sample()
           next_state, _, done, _ = env.step(action)

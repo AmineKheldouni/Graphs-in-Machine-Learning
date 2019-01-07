@@ -37,10 +37,11 @@ class GraphNetsMonitor:
                  nb_features = 2,
                  lr=1e-3,
                  max_iter = 1000,
-                nb_trajectories = 200,
-                m = 1.,
-                l = 1.,
-                g = -10):
+                 nb_trajectories = 200,
+                 m = 1.,
+                 l = 1.,
+                 g = -10,
+                 plot_threshold = 200):
 
       self.name = name
       self.env_name = env_name
@@ -55,7 +56,7 @@ class GraphNetsMonitor:
       self.m = m
       self.l = l
       self.g = g
-
+      self.plot_threshold = plot_threshold
     def train(self):
       ### BUILD TRAINING AND TEST DATA, TRAIN MODEL
       dicts_in_static, dicts_in_dynamic, dicts_out_static, dicts_out_dynamic = sample_trajectories(self.env, self.nb_trajectories, self.m, self.l, self.g, self.build_dics_function)
@@ -129,8 +130,8 @@ class GraphNetsMonitor:
               csv_train_gt['Node ' + str(node) + ' - Component ' + str(i)] = coords_ref[:,i]
               csv_train_pred['Node ' + str(node) + ' - Component ' + str(i)] = coords_output[:,i]
               color = np.random.uniform(0, 1, 3)
-              plt.plot(range(coords_ref.shape[0]), coords_ref[:,i], color=tuple(color), label='Ground Truth Trajectory')
-              plt.plot(range(coords_output.shape[0]), coords_output[:,i], color=tuple(color), label='Predicted with GNN', linestyle='dashed')
+              plt.plot(range(min(coords_ref.shape[0], self.plot_threshold)), coords_ref[:self.plot_threshold,i], color=tuple(color), label='Ground Truth Trajectory')
+              plt.plot(range(min(coords_output.shape[0], self.plot_threshold)), coords_output[:self.plot_threshold,i], color=tuple(color), label='Predicted with GNN', linestyle='dashed')
               plt.title('Train Trajectory - Ground Truth vs Prediction - component ' + str(i) + ', node ' + str(node))
               plt.legend()
               plt.savefig('./results/'+self.name+'/train/component ' + str(i) + ', node ' + str(node) +'.png')
@@ -138,8 +139,8 @@ class GraphNetsMonitor:
               plt.clf()
 
 
-      csv_train_gt.to_csv('./results/'+self.name+'/train/GroundTruth_'+ str(datetime.datetime.now().strftime("%Y%m%d%H%M%S")) + '.csv', sep=',', index=False)
-      csv_train_pred.to_csv('./results/'+self.name+'/train/Prediction_'+ str(datetime.datetime.now().strftime("%Y%m%d%H%M%S")) + '.csv', sep=',', index=False)
+      csv_train_gt.to_csv('./results/'+self.name+'/train/GroundTruth_'+ str(datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")) + '.csv', sep=',', index=False)
+      csv_train_pred.to_csv('./results/'+self.name+'/train/Prediction_'+ str(datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")) + '.csv', sep=',', index=False)
 
     def test(self):
         ### TEST RESULTS
@@ -180,16 +181,16 @@ class GraphNetsMonitor:
                 csv_test_gt['Node ' + str(node) + ' - Component ' + str(i)] = coords_ref[:,i]
                 csv_test_pred['Node ' + str(node) + ' - Component ' + str(i)] = coords_output[:,i]
                 color = np.random.uniform(0, 1, 3)
-                plt.plot(range(coords_ref.shape[0]), coords_ref[:,i], color=tuple(color), label='Ground Truth Trajectory')
-                plt.plot(range(coords_output.shape[0]), coords_output[:,i], color=tuple(color), label='Predicted with GNN', linestyle='dashed')
+                plt.plot(range(min(coords_ref.shape[0], self.plot_threshold)), coords_ref[:self.plot_threshold,i], color=tuple(color), label='Ground Truth Trajectory')
+                plt.plot(range(min(coords_output.shape[0], self.plot_threshold)), coords_output[:self.plot_threshold,i], color=tuple(color), label='Predicted with GNN', linestyle='dashed')
                 plt.title('Test Trajectory - Ground Truth vs Prediction - component ' + str(i) + ', node ' + str(node))
                 plt.legend()
                 plt.savefig('./results/'+self.name+'/test/component ' + str(i) + ', node ' + str(node) +'.png')
                 # plt.show()
                 plt.clf()
 
-        csv_test_gt.to_csv('./results/'+self.name+'/test/GroundTruth_'+ str(datetime.datetime.now()) + '.csv', sep=',', index=False)
-        csv_test_pred.to_csv('./results/'+self.name+'/test/Prediction_'+ str(datetime.datetime.now()) + '.csv', sep=',', index=False)
+        csv_test_gt.to_csv('./results/'+self.name+'/test/GroundTruth_'+ str(datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")) + '.csv', sep=',', index=False)
+        csv_test_pred.to_csv('./results/'+self.name+'/test/Prediction_'+ str(datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")) + '.csv', sep=',', index=False)
 
         self.env.close()
         try:
