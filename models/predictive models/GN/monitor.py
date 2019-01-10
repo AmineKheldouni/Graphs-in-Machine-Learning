@@ -135,12 +135,12 @@ class GraphNetsMonitor:
               plt.title('Train Trajectory - Ground Truth vs Prediction - component ' + str(i) + ', node ' + str(node))
               plt.legend()
               plt.savefig('./results/'+self.name+'/train/component ' + str(i) + ', node ' + str(node) +'.png')
-              # plt.show()
+              plt.show()
               plt.clf()
 
 
-      csv_train_gt.to_csv('./results/'+self.name+'/train/GroundTruth_'+ str(datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")) + '.csv', sep=',', index=False)
-      csv_train_pred.to_csv('./results/'+self.name+'/train/Prediction_'+ str(datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")) + '.csv', sep=',', index=False)
+      csv_train_gt.to_csv('./results/'+self.name+'/train/GroundTruth_'+ str(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")) + '.csv', sep=',', index=False)
+      csv_train_pred.to_csv('./results/'+self.name+'/train/Prediction_'+ str(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")) + '.csv', sep=',', index=False)
 
     def test(self):
         ### TEST RESULTS
@@ -174,8 +174,8 @@ class GraphNetsMonitor:
 
         for node in range(n_nodes):
 
-            coords_output = self.sess.run(Y_test.nodes)[node::n_nodes, :]
-            coords_ref = self.sess.run(output_test.nodes)[node::n_nodes, :]
+            coords_ref = self.sess.run(Y_test.nodes)[node::n_nodes, :]
+            coords_output = self.sess.run(output_test.nodes)[node::n_nodes, :]
 
             for i in range(n_feats):
                 csv_test_gt['Node ' + str(node) + ' - Component ' + str(i)] = coords_ref[:,i]
@@ -186,11 +186,11 @@ class GraphNetsMonitor:
                 plt.title('Test Trajectory - Ground Truth vs Prediction - component ' + str(i) + ', node ' + str(node))
                 plt.legend()
                 plt.savefig('./results/'+self.name+'/test/component ' + str(i) + ', node ' + str(node) +'.png')
-                # plt.show()
+                plt.show()
                 plt.clf()
 
-        csv_test_gt.to_csv('./results/'+self.name+'/test/GroundTruth_'+ str(datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")) + '.csv', sep=',', index=False)
-        csv_test_pred.to_csv('./results/'+self.name+'/test/Prediction_'+ str(datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")) + '.csv', sep=',', index=False)
+        csv_test_gt.to_csv('./results/'+self.name+'/test/GroundTruth_'+ str(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")) + '.csv', sep=',', index=False)
+        csv_test_pred.to_csv('./results/'+self.name+'/test/Prediction_'+ str(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")) + '.csv', sep=',', index=False)
 
         self.env.close()
         try:
