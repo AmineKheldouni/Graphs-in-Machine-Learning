@@ -44,6 +44,6 @@ gn_monitor = GraphNetsMonitor(name = NAME,
                               build_dics_function = build_dics_cartpole,
                               nb_features = 4,
                               lr=1e-3,
-                              max_iter = 1000,
+                              max_iter = 5000,
                               nb_trajectories = 200)
 gn_monitor.work()

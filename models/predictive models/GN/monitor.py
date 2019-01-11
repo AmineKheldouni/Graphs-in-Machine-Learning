@@ -130,12 +130,11 @@ class GraphNetsMonitor:
               csv_train_gt['Node ' + str(node) + ' - Component ' + str(i)] = coords_ref[:,i]
               csv_train_pred['Node ' + str(node) + ' - Component ' + str(i)] = coords_output[:,i]
               color = np.random.uniform(0, 1, 3)
-              plt.plot(range(min(coords_ref.shape[0], self.plot_threshold)), coords_ref[:self.plot_threshold,i], color=tuple(color), label='Ground Truth Trajectory')
+              plt.plot(range(min(coords_ref.shape[0], self.plot_threshold)), coords_ref[:self.plot_threshold,i], color=tuple(color), label='Ground Truth')
               plt.plot(range(min(coords_output.shape[0], self.plot_threshold)), coords_output[:self.plot_threshold,i], color=tuple(color), label='Predicted with GNN', linestyle='dashed')
-              plt.title('Train Trajectory - Ground Truth vs Prediction - component ' + str(i) + ', node ' + str(node))
               plt.legend()
               plt.savefig('./results/'+self.name+'/train/component ' + str(i) + ', node ' + str(node) +'.png')
-              plt.show()
+              # plt.show()
               plt.clf()
 
 
@@ -181,12 +180,11 @@ class GraphNetsMonitor:
                 csv_test_gt['Node ' + str(node) + ' - Component ' + str(i)] = coords_ref[:,i]
                 csv_test_pred['Node ' + str(node) + ' - Component ' + str(i)] = coords_output[:,i]
                 color = np.random.uniform(0, 1, 3)
-                plt.plot(range(min(coords_ref.shape[0], self.plot_threshold)), coords_ref[:self.plot_threshold,i], color=tuple(color), label='Ground Truth Trajectory')
+                plt.plot(range(min(coords_ref.shape[0], self.plot_threshold)), coords_ref[:self.plot_threshold,i], color=tuple(color), label='Ground Truth')
                 plt.plot(range(min(coords_output.shape[0], self.plot_threshold)), coords_output[:self.plot_threshold,i], color=tuple(color), label='Predicted with GNN', linestyle='dashed')
-                plt.title('Test Trajectory - Ground Truth vs Prediction - component ' + str(i) + ', node ' + str(node))
                 plt.legend()
                 plt.savefig('./results/'+self.name+'/test/component ' + str(i) + ', node ' + str(node) +'.png')
-                plt.show()
+                # plt.show()
                 plt.clf()
 
         csv_test_gt.to_csv('./results/'+self.name+'/test/GroundTruth_'+ str(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")) + '.csv', sep=',', index=False)

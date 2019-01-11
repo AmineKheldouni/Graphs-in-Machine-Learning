@@ -45,7 +45,7 @@ gn_monitor = GraphNetsMonitor(name = NAME,
                               nb_features_nodes = 4,
                               nb_features_edges = 1,
                               nb_features_globals = 1,
-                              lr=1e-3,
-                              max_iter = 1000,
-                              nb_trajectories = 200)
+                              lr=5e-4,
+                              max_iter = 5000,
+                              nb_trajectories = 500)
 gn_monitor.work()

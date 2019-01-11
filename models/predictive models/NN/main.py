@@ -28,9 +28,9 @@ env = gym.make('CartPole-v0')
 def sample_trajectories(env, N):
     X = []
     Y = []
+    state = env.reset()
     while (len(X) < N):
-      state = env.reset()
-      for i in range(100):
+      for i in range(200):
           action = env.action_space.sample()
           next_state, reward, done, info = env.step(action)
           if isinstance(state, np.ndarray):
@@ -61,11 +61,10 @@ print('Y_test shape:', Y_test.shape)
 def linear_nn(X, Y):
     model = Sequential()
     model.add(Dense(128, input_dim=X.shape[1], kernel_initializer='normal', activation='relu'))
-    model.add(Dense(128, kernel_initializer='normal', activation='relu'))
     model.add(Dense(Y.shape[1], kernel_initializer='normal'))
 
     model.compile(loss='mse', optimizer='adam')
-    hist = model.fit(X, Y, validation_split=0.1, epochs=200, batch_size=128, verbose=1, shuffle=True)
+    hist = model.fit(X, Y, validation_split=0.1, epochs=100, batch_size=128, verbose=1, shuffle=True)
 
     return hist, model
 
@@ -85,46 +84,22 @@ for j in range(env.observation_space.shape[0]):
     csv_train_gt['Component ' + str(j)] = Y_train[:,j]
     csv_train_pred['Component ' + str(j)] = Y_train_pred[:,j]
     color = np.random.uniform(0, 1, 3)
-    plt.plot(range(100), Y_train.T[j][:100], color=tuple(color), label='Ground Truth Trajectory')
+    plt.plot(range(100), Y_train.T[j][:100], color=tuple(color), label='Ground Truth')
     plt.plot(range(100), Y_train_pred.T[j][:100], color=tuple(color), label='Predicted with Linear NN', linestyle='dashed')
-    plt.title('Ground Truth trajectory vs Prediction '+ str(j)+'-th component of state vector')
+    # plt.title('Ground Truth trajectory vs Prediction '+ str(j)+'-th component of state vector')
     plt.legend()
-    plt.savefig('./results/' + NAME + '/train/' + str(j) + '-th component of state vector.png')
+    # plt.savefig('./results/' + NAME + '/train/' + str(j) + '-th component of state vector.png')
     plt.clf()
     # plt.show()
 
 csv_train_gt.to_csv('./results/'+NAME+'/train/GroundTruth_'+ str(datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")) + '.csv', sep=',', index=False)
 csv_train_pred.to_csv('./results/'+NAME+'/train/Prediction_'+ str(datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")) + '.csv', sep=',', index=False)
 
-current_state = env.reset()
-Y_test = []
-Y_test_pred = []
-env.reset()
-for step_index in range(100):
-    # time.sleep(0.05)
-    # env.render()
-    action = env.action_space.sample()
-
-    if isinstance(current_state, np.ndarray):
-        x = [s for s in current_state]
-    else:
-        x = [current_state]
-    if isinstance(action, np.ndarray):
-        x += [a for a in action]
-    else:
-        x += [action]
-
-    y_pred = regression_model.predict(np.array(x).reshape((1,-1)))
-
-    next_state, reward, done, info = env.step(action)
-    Y_test.append(next_state)
-    Y_test_pred.append(y_pred)
-    current_state = next_state
-    if done:
-        print("Finished after iteration: ", step_index)
-        break
-
+s = env.reset()
+X_test, Y_test = sample_trajectories(env, 200)
+X_test = np.array(X_test)
 Y_test = np.array(Y_test)
+Y_test_pred = regression_model.predict(X_test)
 Y_test_pred = np.array(Y_test_pred).reshape(Y_test.shape)
 
 
@@ -144,11 +119,11 @@ csv_test_pred.to_csv('./results/'+NAME+'/test/Prediction_'+ str(datetime.datetim
 
 print("Y_test_pred: ", Y_test_pred.shape)
 print("Y_test: ", Y_test.shape)
-for i in range(len(current_state)):
+for i in range(env.observation_space.shape[0]):
     color = np.random.uniform(0, 1, 3)
-    plt.plot(range(Y_test.shape[0]), Y_test.T[i], color=tuple(color), label='Ground Truth Trajectory')
+    plt.plot(range(Y_test.shape[0]), Y_test.T[i], color=tuple(color), label='Ground Truth')
     plt.plot(range(Y_test_pred.shape[0]), Y_test_pred.T[i], color=tuple(color), label='Predicted with Linear NN', linestyle='dashed')
-    plt.title('Ground Truth trajectory vs Prediction '+ str(i)+'-th component of state vector')
+    # plt.title('Ground Truth trajectory vs Prediction '+ str(i)+'-th component of state vector')
     plt.legend()
     plt.savefig('./results/' + NAME + '/test/' + str(i) + '-th component of state vector.png')
     plt.clf()

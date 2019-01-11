@@ -61,7 +61,7 @@ class GraphNetsMonitor:
       self.l = l
       self.g = g
       self.plot_threshold = plot_threshold
-      
+
     def train(self):
       ### BUILD TRAINING AND TEST DATA, TRAIN MODEL
       dicts_in_static, dicts_in_dynamic, dicts_out_static, dicts_out_dynamic = sample_trajectories(self.env, self.nb_trajectories, self.m, self.l, self.g, self.build_dics_function)
@@ -74,7 +74,7 @@ class GraphNetsMonitor:
                                 n_output_nodes=self.nb_features_nodes,
                                 n_output_edges=self.nb_features_edges,
                                 n_output_globals=self.nb_features_globals)
-      
+
       output_train = self.model(X_train)
       self.loss = tf.reduce_mean((Y_train.nodes - output_train.nodes)**2)
       optimizer = tf.train.AdamOptimizer(self.learning_rate)
@@ -139,12 +139,12 @@ class GraphNetsMonitor:
               csv_train_gt['Node ' + str(node) + ' - Component ' + str(i)] = coords_ref[:,i]
               csv_train_pred['Node ' + str(node) + ' - Component ' + str(i)] = coords_output[:,i]
               color = np.random.uniform(0, 1, 3)
-              plt.plot(range(min(coords_ref.shape[0], self.plot_threshold)), coords_ref[:self.plot_threshold,i], color=tuple(color), label='Ground Truth Trajectory')
+              plt.plot(range(min(coords_ref.shape[0], self.plot_threshold)), coords_ref[:self.plot_threshold,i], color=tuple(color), label='Ground Truth')
               plt.plot(range(min(coords_output.shape[0], self.plot_threshold)), coords_output[:self.plot_threshold,i], color=tuple(color), label='Predicted with GNN', linestyle='dashed')
-              plt.title('Train Trajectory - Ground Truth vs Prediction - component ' + str(i) + ', node ' + str(node))
+              # plt.title('Train Trajectory - Ground Truth vs Prediction - component ' + str(i) + ', node ' + str(node))
               plt.legend()
               plt.savefig('./results/'+self.name+'/train/component ' + str(i) + ', node ' + str(node) +'.png')
-              plt.show()
+              # plt.show()
               plt.clf()
 
 
@@ -190,12 +190,12 @@ class GraphNetsMonitor:
                 csv_test_gt['Node ' + str(node) + ' - Component ' + str(i)] = coords_ref[:,i]
                 csv_test_pred['Node ' + str(node) + ' - Component ' + str(i)] = coords_output[:,i]
                 color = np.random.uniform(0, 1, 3)
-                plt.plot(range(min(coords_ref.shape[0], self.plot_threshold)), coords_ref[:self.plot_threshold,i], color=tuple(color), label='Ground Truth Trajectory')
+                plt.plot(range(min(coords_ref.shape[0], self.plot_threshold)), coords_ref[:self.plot_threshold,i], color=tuple(color), label='Ground Truth')
                 plt.plot(range(min(coords_output.shape[0], self.plot_threshold)), coords_output[:self.plot_threshold,i], color=tuple(color), label='Predicted with GNN', linestyle='dashed')
-                plt.title('Test Trajectory - Ground Truth vs Prediction - component ' + str(i) + ', node ' + str(node))
+                # plt.title('Test Trajectory - Ground Truth vs Prediction - component ' + str(i) + ', node ' + str(node))
                 plt.legend()
                 plt.savefig('./results/'+self.name+'/test/component ' + str(i) + ', node ' + str(node) +'.png')
-                plt.show()
+                # plt.show()
                 plt.clf()
 
         csv_test_gt.to_csv('./results/'+self.name+'/test/GroundTruth_'+ str(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")) + '.csv', sep=',', index=False)
