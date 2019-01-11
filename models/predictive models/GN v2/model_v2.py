@@ -112,10 +112,6 @@ class RecurrentModelInference(snt.AbstractModule):
 
                 graph_concat_output = utils_tf.concat([graph, graph_hidden], axis=1)
                 output_graph = self._forward_model(graph_concat_output)
-                print(graph)
-                print(graph_hidden)
-                print(graph_concat_output)
-                print(output_graph)
                 break
         
         

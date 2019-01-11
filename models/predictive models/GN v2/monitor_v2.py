@@ -82,7 +82,7 @@ class GraphNetsMonitor:
       output_train = self.model(X_train)
       print(Y_train)
       print(output_train)
-      self.loss = tf.reduce_mean((Y_train.nodes - output_train.nodes)**2) + float(self.nb_features_globals)/self.nb_features_nodes*tf.reduce_mean((Y_train.globals - output_train.globals)**2)
+      self.loss = tf.reduce_mean((Y_train.nodes - output_train.nodes)**2) + float(self.nb_features_edges)/self.nb_features_nodes*tf.reduce_mean((Y_train.edges - output_train.edges)**2) + float(self.nb_features_globals)/self.nb_features_nodes*tf.reduce_mean((Y_train.globals - output_train.globals)**2)
       optimizer = tf.train.AdamOptimizer(self.learning_rate)
       step_op = optimizer.minimize(self.loss)
 
@@ -179,6 +179,11 @@ class GraphNetsMonitor:
       csv_train_gt.to_csv('./results/'+self.name+'/train/GroundTruth_'+ str(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")) + '.csv', sep=',', index=False)
       csv_train_pred.to_csv('./results/'+self.name+'/train/Prediction_'+ str(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")) + '.csv', sep=',', index=False)
 
+
+
+
+
+
     def test(self):
         ### TEST RESULTS
 
@@ -189,47 +194,69 @@ class GraphNetsMonitor:
 
         print("Trajectories created, building testing data")
 
-        X_test_orig = utils_tf.data_dicts_to_graphs_tuple(dicts_in_dynamic_test[:n_graphs])
+        self.X_test_orig = utils_tf.data_dicts_to_graphs_tuple(dicts_in_dynamic_test[:n_graphs])
+        
         Y_test = utils_tf.data_dicts_to_graphs_tuple(dicts_out_dynamic_test)
 
         print("Non-nul:",self.sess.run(tf.reduce_max(Y_test.nodes[1:])))
         
-        nodes_shape = utils_tf.get_graph(X_test_orig, 0).nodes.shape
-        globals_shape = utils_tf.get_graph(X_test_orig, 0).globals.shape
+        nodes_shape = utils_tf.get_graph(self.X_test_orig, 0).nodes.shape
+        edges_shape = utils_tf.get_graph(self.X_test_orig, 0).edges.shape
+        globals_shape = utils_tf.get_graph(self.X_test_orig, 0).globals.shape
         
         
         n_nodes = int(Y_test.nodes.shape[0]) // int(Y_test.n_node.shape[0])
         n_feats = int(Y_test.nodes.shape[1])
         n_globals = int(Y_test.globals.shape[1])
         
-        def body(t, graphs, nodes_per_step):#, globals_per_step):
+
+        
+        nodes_per_step = tf.TensorArray(dtype=self.X_test_orig.nodes.dtype, size=n_points, element_shape=nodes_shape)
+        globals_per_step = tf.TensorArray(dtype=self.X_test_orig.globals.dtype, size=n_points, element_shape=globals_shape)
+        
+        print("n graphs",n_graphs)
+        print("n points",n_points)
+        
+        for t in range(n_graphs):
+            
+            nodes_per_step = nodes_per_step.write(t, utils_tf.get_graph(self.X_test_orig, t).nodes)
+            globals_per_step = globals_per_step.write(t, utils_tf.get_graph(self.X_test_orig, t).globals)
+        
+        self.t_index = 0
+        
+        def body(t,nodes_per_step,globals_per_step):
+            
+            print(self.t_index)
+            print(t)
+            
+            graphs = utils_tf.get_graph(self.X_test_orig, slice(self.t_index,self.t_index+n_graphs))
+            self.t_index += 1
             
             graph_predicted = self.model(graphs)
-            print(graph_predicted.nodes.shape, graph_predicted.globals.shape, utils_tf.get_graph(graphs,n_graphs-1).globals.shape)
             new_nodes = graph_predicted.nodes + utils_tf.get_graph(graphs,n_graphs-1).nodes
-            #new_globals = graph_predicted.globals + utils_tf.get_graph(graphs,n_graphs-1).globals
-            new_graph = graph_predicted.replace(nodes=new_nodes)#, globals=new_globals)
-            graphs = utils_tf.get_graph(graph_predicted,slice(1,n_graphs))
-            graphs = utils_tf.concat([graphs,new_graph], axis=0)
+            new_globals = graph_predicted.globals + utils_tf.get_graph(graphs,n_graphs-1).globals
+            graph_predicted = graph_predicted.replace(nodes=new_nodes, globals=new_globals)
+
+            nodes_per_step = nodes_per_step.write(t, graph_predicted.nodes)
+            globals_per_step = globals_per_step.write(t, graph_predicted.globals)
             
+            #self.X_test_orig = utils_tf.concat([self.X_test_orig, graph_predicted], axis=0)
             
-            print("Shapes : ",new_graph.nodes.shape)
-            print("Shapes : ",new_graph.globals.shape)
+            print("Shapes :",self.X_test_orig.nodes.shape)
             
-            
-            return t+1, graphs, nodes_per_step.write(t, tf.reshape(new_graph.nodes,nodes_shape))#, globals_per_step.write(t, tf.reshape(new_graph.globals,globals_shape))
+            return t+1, nodes_per_step,globals_per_step
     
+        X_test_orig = self.X_test_orig
         
-        nodes_per_step = tf.TensorArray(dtype=X_test_orig.nodes.dtype, size=n_points, element_shape=nodes_shape)
-        globals_per_step = tf.TensorArray(dtype=X_test_orig.globals.dtype, size=n_points, element_shape=globals_shape)
-        for t in range(n_graphs):
-            nodes_per_step = nodes_per_step.write(t, utils_tf.get_graph(X_test_orig, t).nodes)
-            globals_per_step = globals_per_step.write(t, utils_tf.get_graph(X_test_orig, t).globals)
+        #print("SHAPES ORIGINAL :", nodes_per_step.get_shape() , globals_per_step.get_shape()  )
+        _, nodes_per_step, globals_per_step = tf.while_loop(lambda t, *unused_args: t < n_points,body,loop_vars=[n_graphs, nodes_per_step, globals_per_step])
         
-        _, _, nodes_per_step = tf.while_loop(lambda t, *unused_args: t < n_points,body,loop_vars=[n_graphs, X_test_orig, nodes_per_step])
+        print("Shapes :",X_test_orig.nodes.shape)
         
-        output_test_nodes = tf.reshape(nodes_per_step.stack(), (n_points*X_test_orig.nodes.shape[0], X_test_orig.nodes.shape[1]))
-        output_test_globals = tf.reshape(globals_per_step.stack(), (n_points*X_test_orig.globals.shape[0], X_test_orig.globals.shape[1]))
+        output_test_nodes = tf.reshape(nodes_per_step.stack(), (n_points*utils_tf.get_graph(X_test_orig,0).nodes.shape[0], X_test_orig.nodes.shape[1]))
+        output_test_globals = tf.reshape(globals_per_step.stack(), (n_points*utils_tf.get_graph(X_test_orig,0).globals.shape[0], X_test_orig.globals.shape[1]))
+
+        print("Shapes final :",output_test_nodes.shape,output_test_globals.shape)
 
         print("Testing data built, testing the model")
 
