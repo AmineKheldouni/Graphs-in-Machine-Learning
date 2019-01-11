@@ -6,7 +6,6 @@ import os
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
-plt.style.use('ggplot')
 
 from lightsaber.rl.replay_buffer import EpisodeReplayBuffer
 from lightsaber.rl.trainer import Trainer
@@ -23,7 +22,7 @@ def main():
     parser.add_argument('--env', type=str, default='Pendulum-v0')
     parser.add_argument('--log', type=str, default=date)
     parser.add_argument('--load', type=str, default=None)
-    parser.add_argument('--final-steps', type=int, default=10 ** 4)
+    parser.add_argument('--final-steps', type=int, default=10 ** 5)
     parser.add_argument('--episode-update', action='store_true')
     parser.add_argument('--render', action='store_true')
     parser.add_argument('--demo', action='store_true')
@@ -97,7 +96,7 @@ def main():
                 break
     rewards = np.mean(rewards, axis=0)
     trainer.start()
-    # 
+    #
     # print('Rendering RSVG trained agent')
     # rewardRSVG = np.zeros((N,T))
     # trainer.training = False
