@@ -40,6 +40,7 @@ class Agent(object):
         )
 
     def act(self, obs, reward, training=True):
+        # obs = np.array(list(obs))
         obs = obs[0]
         action, self.actor_lstm_state  = self._act(
             [obs], self.actor_lstm_state[0], self.actor_lstm_state[1])
@@ -97,6 +98,14 @@ class Agent(object):
         self.last_obs = obs
         self.last_action = action
         return action
+
+    def choose_action(self, obs):
+        obs = obs[0]
+        action, self.actor_lstm_state  = self._act(
+            [obs], self.actor_lstm_state[0], self.actor_lstm_state[1])
+        action = np.clip(action[0], -2, 2)
+        return action
+
 
     def stop_episode(self, obs, reward, training=True):
         obs = obs[0]

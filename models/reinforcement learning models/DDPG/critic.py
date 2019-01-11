@@ -106,4 +106,3 @@ class CriticNetwork(object):
 
     def update_target_network(self):
         self.sess.run(self.update_target_network_params)
-

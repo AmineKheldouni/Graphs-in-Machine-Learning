@@ -6,8 +6,9 @@ from collections import deque
 import matplotlib.pyplot as plt
 import time
 # Credit: https://github.com/udacity/deep-reinforcement-learning
+env_name = 'Pendulum-v0'
 
-env = gym.make('LunarLander-v2')
+env = gym.make(env_name)
 env.seed(0)
 print('State shape: ', env.observation_space.shape)
 print('Action shape: ', env.action_space.shape)
@@ -23,9 +24,9 @@ state = env.reset()
 rewards = []
 for step_index in range(T):
     action = agent.act(state)
-    env.render()
-    time.sleep(0.01)
-    state, reward, done, _ = env.step(action)
+    # env.render()
+    # time.sleep(0.01)
+    state, reward, done, _ = env.step(np.array(action).reshape(-1))
     rewards.append(reward)
     if done:
         print("Finished after iteration: ", step_index)
@@ -35,7 +36,7 @@ env.close()
 plt.plot(np.cumsum(rewards))
 plt.show()
 
-def dqn(n_episodes=2000, max_t=1000, eps_start=1.0, eps_end=0.01, eps_decay=0.995):
+def dqn(n_episodes=5000, max_t=1000, eps_start=1.0, eps_end=0.0001, eps_decay=0.9995):
     """Deep Q-Learning.
 
     Params
@@ -54,7 +55,7 @@ def dqn(n_episodes=2000, max_t=1000, eps_start=1.0, eps_end=0.01, eps_decay=0.99
         score = 0
         for t in range(max_t):
             action = agent.act(state, eps)
-            next_state, reward, done, _ = env.step(action)
+            next_state, reward, done, _ = env.step(action.reshape(-1))
             agent.step(state, action, reward, next_state, done)
             state = next_state
             score += reward
@@ -85,7 +86,7 @@ scores = dqn()
 
 # load the weights from file
 agent.qnetwork_local.load_state_dict(torch.load('checkpoint' + env_name + '.pth'))
-N = 3
+N = 10
 rewardsDQN = np.zeros((N,T))
 for i in range(N):
     state = env.reset()
@@ -94,7 +95,7 @@ for i in range(N):
         action = agent.act(state)
         env.render()
         time.sleep(0.01)
-        state, reward, done, _ = env.step(action)
+        state, reward, done, _ = env.step(action.reshape(-1))
         rewardsDQN[i,step_index] = reward
         if done:
             print("Finished after iteration: ", step_index)

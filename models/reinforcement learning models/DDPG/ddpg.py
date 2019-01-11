@@ -14,6 +14,10 @@
 import tensorflow as tf
 import numpy as np
 import gym
+import matplotlib.pyplot as plt
+plt.style.use('ggplot')
+
+import pandas as pd
 
 from replay_buffer import ReplayBuffer
 from noise import Noise
@@ -26,9 +30,9 @@ from critic import CriticNetwork
 #   Training Parameters
 # ==========================
 # Maximum episodes run
-MAX_EPISODES = 1000
+MAX_EPISODES = 700
 # Max episode length
-MAX_EP_STEPS = 1000
+MAX_EP_STEPS = 500
 # Episodes with noise
 NOISE_MAX_EP = 200
 # Noise parameters - Ornstein Uhlenbeck
@@ -99,7 +103,7 @@ def train(sess, env, actor, critic, noise, reward, discrete):
 
     # Initialize noise
     ou_level = 0.
-
+    ep_reward_list = []
     for i in range(MAX_EPISODES):
         s = env.reset()
 
@@ -182,11 +186,20 @@ def train(sess, env, actor, critic, noise, reward, discrete):
                 summary_writer.add_summary(summary, i)
 
                 summary_writer.flush()
-
+                ep_reward_list.append(ep_reward)
                 print('| Reward: %.2i' % int(ep_reward), " | Episode", i, \
                 '| Qmax: %.4f' % (ep_ave_max_q / float(j)))
 
                 break
+    plt.plot(np.array(ep_reward_list), c='green', label='DDPG')
+    plt.savefig('ddpg_convergence.png')
+    plt.show()
+    plt.clf()
+    csv_file = pd.DataFrame(columns=['DDPG'])
+    csv_file['DDPG'] = ep_reward_list
+    csv_file.to_csv('ddpg_results.csv', sep=',', index=False)
+
+
 
 
 def main(_):
@@ -223,6 +236,27 @@ def main(_):
         noise = Noise(DELTA, SIGMA, OU_A, OU_MU)
         reward = Reward(REWARD_FACTOR, GAMMA)
 
+
+        N = 20
+        T = 500
+        rewards = np.zeros((N,T))
+        for i in range(N):
+            state = env.reset()
+            for step_index in range(T):
+                a = env.action_space.sample()
+                state, r, done, _ = env.step(np.array(a).reshape(-1))
+                rewards[i,step_index] = r
+                if done:
+                    print("Finished after iteration: ", step_index)
+                    break
+
+        rewards = np.mean(rewards, axis=0)
+
+        env = gym.make(ENV_NAME)
+        np.random.seed(RANDOM_SEED)
+        tf.set_random_seed(RANDOM_SEED)
+        env.seed(RANDOM_SEED)
+
         if GYM_MONITOR_EN:
             if not RENDER_ENV:
                 gym.wrappers.Monitor(env, MONITOR_DIR, video_callable=False, force=True)
@@ -237,6 +271,28 @@ def main(_):
         if GYM_MONITOR_EN:
             gym.wrappers.Monitor(env, MONITOR_DIR, force=True).close()
 
+        print('Rendering DDPG trained agent')
+        rewardDDPG = np.zeros((N,T))
+        for i in range(N):
+            state = env.reset()
+            for step_index in range(T):
+                env.render()
+                a = actor.predict(np.reshape(state, (1, actor.s_dim)))
+                state, reward, done, _ = env.step(np.array(a).reshape(-1))
+                rewardDDPG[i,step_index] = reward
+                if done:
+                    print("Finished after iteration: ", step_index)
+                    break
+
+        rewardDDPG = np.mean(rewardDDPG, axis=0)
+        env.close()
+
+        plt.plot(np.cumsum(rewardDDPG), color='green', label='DQN Agent trained')
+        plt.plot(np.cumsum(rewards), color='red', label='Untrained Agent')
+        plt.legend()
+        plt.savefig('rewards_trained_ddpg.png')
+        plt.show()
+        plt.clf()
 
 if __name__ == '__main__':
     tf.app.run()
